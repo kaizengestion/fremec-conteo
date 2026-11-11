@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fremec · Ingreso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link rel="icon" href="img/icono.png">
+<link rel="stylesheet" href="estilos.css">
+<style>
+  body { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; }
+  main { display: grid; place-items: center; padding: 32px 16px 64px; }
+  .ingreso { width: min(420px, 100%); display: grid; gap: 22px; }
+  .ingreso header { display: grid; gap: 6px; }
+  form { display: grid; gap: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; box-shadow: var(--shadow); }
+  .ingreso .input { min-height: 54px; font-size: 1.1rem; }
+  .ayuda { font-size: .88rem; color: var(--muted); line-height: 1.55; }
+  .ayuda code { font-size: .95em; background: var(--sunk); padding: 1px 6px; border-radius: 4px; color: var(--ink); }
+  .pie { display: flex; justify-content: center; }
+</style>
+</head>
+<body>
+<div class="top"><div class="marca" id="marca"></div><span class="sp"></span><span class="prueba">Versión de prueba</span></div>
+<main>
+  <div class="ingreso">
+    <header>
+      <h1>Conteo de envasado</h1>
+      <p class="muted">Entrá con tu usuario para cargar lo que envasaste hoy.</p>
+    </header>
+    <form id="f" novalidate>
+      <label class="f">Usuario<input class="input" name="usuario" autocomplete="username" autocapitalize="none" required></label>
+      <label class="f">Clave<input class="input" name="clave" type="password" autocomplete="current-password" required></label>
+      <div id="msg" hidden></div>
+      <button class="btn primary lg block" id="entrar">Entrar</button>
+    </form>
+    <p class="ayuda">Usuarios de prueba: administración <code>julieta</code> / <code>fremec</code> · operarios <code>gmolina</code>, <code>srios</code>, <code>lperez</code>, <code>mgomez</code> / <code>1234</code></p>
+    <p class="muted" style="font-size:.85rem;margin:14px 0 0">Demo: los datos de prueba se guardan solo en este navegador.</p>
+    <div class="pie"><a class="btn ghost" href="planta.html"><span id="itv"></span>Ver pantalla de planta</a></div>
+  </div>
+</main>
+<script src="productos.js"></script>
+<script src="demo-api.js"></script>
+<script src="comun.js"></script>
+<script>
+  document.getElementById('marca').innerHTML = LOGO + '<small>Conteo de envasado</small>';
+  document.getElementById('itv').outerHTML = icono('tv');
+  api('/api/yo').then(d => location.replace(d.usuario.rol === 'admin' ? 'admin.html' : 'operario.html')).catch(() => {});
+  const f = document.getElementById('f'), msg = document.getElementById('msg');
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(f));
+    if (!datos.usuario.trim() || !datos.clave) { msg.hidden = false; msg.className = 'aviso err'; msg.innerHTML = icono('alerta') + 'Completá usuario y clave.'; return; }
+    const b = document.getElementById('entrar'); b.disabled = true; b.textContent = 'Entrando…';
+    try {
+      const d = await api('/api/login', { method: 'POST', body: datos });
+      location.href = d.usuario.rol === 'admin' ? 'admin.html' : 'operario.html';
+    } catch (err) {
+      msg.hidden = false; msg.className = 'aviso err'; msg.innerHTML = icono('alerta') + esc(err.message);
+      f.clave.value = ''; f.clave.focus(); b.disabled = false; b.textContent = 'Entrar';
+    }
+  });
+</script>
+</body>
+</html>

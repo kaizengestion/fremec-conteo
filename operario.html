@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fremec · Carga del día</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link rel="icon" href="img/icono.png">
+<link rel="stylesheet" href="estilos.css">
+<style>
+  body { font-size: 17px; padding-bottom: 120px; }
+  main { width: min(860px, 100%); margin: 0 auto; padding: 28px 16px; display: grid; gap: 28px; }
+  .cab { display: grid; gap: 4px; }
+  .cab p { color: var(--muted); }
+  .filas { display: grid; gap: 12px; }
+  .fila { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; }
+  .fila-main { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: end; }
+  .elegir {
+    width: 100%; min-height: 64px; text-align: left; padding: 10px 16px; border-radius: 10px; cursor: pointer;
+    border: 1.5px dashed var(--line-strong); background: var(--paper); display: grid; gap: 2px; transition: border-color .15s, background .15s;
+  }
+  .elegir:hover { border-color: var(--accent); }
+  .elegir.listo { border: 1.5px solid var(--line-strong); background: var(--surface); }
+  .elegir .c { font-weight: 700; font-size: 1.1rem; line-height: 1.2; }
+  .elegir .d { font-size: .88rem; color: var(--muted); }
+  .elegir.vacio-c .c { color: var(--accent); }
+  .lbl { font-size: .8rem; font-weight: 650; color: var(--muted); margin-bottom: 6px; display: block; }
+  .paso { display: grid; grid-template-columns: 56px 110px 56px; border: 1px solid var(--line-strong); border-radius: 10px; overflow: hidden; height: 64px; background: var(--surface); }
+  .paso button { border: 0; background: var(--sunk); cursor: pointer; display: grid; place-items: center; font-size: 1.3rem; }
+  .paso button:hover { background: var(--line); }
+  .paso input { border: 0; text-align: center; font-size: 1.6rem; font-weight: 750; width: 100%; min-width: 0; background: transparent; }
+  .paso input:focus { outline: none; background: var(--accent-soft); }
+  .quitar { width: 48px; height: 64px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+  .quitar:hover { background: var(--danger-soft); color: var(--danger); }
+  .cli-txt { min-height: 64px; font-size: 1.1rem; }
+  .agregar { justify-self: start; }
+  .pie {
+    position: fixed; inset: auto 0 0 0; background: var(--surface); border-top: 1px solid var(--line);
+    box-shadow: 0 -8px 24px -16px rgb(0 0 0 / .25); padding: 14px 16px; z-index: 5;
+  }
+  .pie-in { width: min(860px, 100%); margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+  .pie .tot { flex: 1; display: grid; }
+  .pie .tot b { font-size: 1.7rem; line-height: 1.1; font-weight: 800; }
+  .pie .tot span { font-size: .85rem; color: var(--muted); }
+  .hoy h2 { margin-bottom: 12px; }
+  .hoy ul { list-style: none; margin: 0; padding: 0; }
+  .hoy li { display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .hoy li:last-child { border-bottom: 0; }
+  .hoy li .q { font-weight: 800; font-size: 1.15rem; min-width: 70px; text-align: right; }
+  .hoy li .who { flex: 1; min-width: 0; }
+  .hoy li .who b { display: block; }
+  .hoy li .who small { color: var(--muted); }
+
+  /* selector */
+  .sel-cab { padding: 18px 18px 12px; display: grid; gap: 12px; border-bottom: 1px solid var(--line); }
+  .sel-cab .t { display: flex; align-items: center; gap: 10px; }
+  .sel-cab .t h2 { flex: 1; }
+  .buscar { position: relative; }
+  .buscar svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  .buscar .input { padding-left: 42px; min-height: 52px; font-size: 1.05rem; }
+  .opciones { list-style: none; margin: 0; padding: 6px; overflow-y: auto; max-height: min(480px, 60dvh); }
+  .opciones button { width: 100%; text-align: left; background: none; border: 0; padding: 14px 12px; border-radius: 8px; cursor: pointer; display: grid; gap: 3px; }
+  .opciones button:hover, .opciones button:focus-visible { background: var(--accent-soft); }
+  .opciones .c { font-weight: 700; font-size: 1.08rem; }
+  .opciones .d { font-size: .88rem; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  @media (max-width: 620px) {
+    .fila-main { grid-template-columns: 1fr auto; }
+    .fila-main > :first-child { grid-column: 1 / -1; }
+    .paso { grid-template-columns: 52px 1fr 52px; }
+  }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="marca" id="marca"></div><span class="sp"></span>
+  <span id="quien" style="font-weight:600"></span>
+  <button class="btn ghost sm" onclick="salir()" id="bsalir">Salir</button>
+</div>
+<main>
+  <section class="cab">
+    <h1>¿Cuánto envasaste hoy?</h1>
+    <p id="sub"></p>
+  </section>
+  <section>
+    <div class="filas" id="filas"></div>
+    <button class="btn agregar" id="agregar" style="margin-top:12px"></button>
+  </section>
+  <section class="hoy">
+    <h2>Lo que ya registraste hoy</h2>
+    <div class="panel" id="hoy"><div class="vacio">Todavía no registraste nada hoy.</div></div>
+  </section>
+</main>
+<div class="pie"><div class="pie-in">
+  <div class="tot"><b id="total">0 u.</b><span id="totsub">en esta carga</span></div>
+  <button class="btn primary lg" id="enviar">Registrar carga</button>
+</div></div>
+
+<dialog id="sel" aria-labelledby="sel-t">
+  <div class="sel-cab">
+    <div class="t"><h2 id="sel-t">Elegí el cliente</h2><button class="btn ghost sm" id="sel-x" aria-label="Cerrar"></button></div>
+    <div class="buscar"><span id="sel-i"></span><input class="input" id="q" placeholder="Buscá por cliente o número de nota" autocomplete="off"></div>
+  </div>
+  <ul class="opciones" id="ops" role="listbox"></ul>
+</dialog>
+
+<script src="productos.js"></script>
+<script src="demo-api.js"></script>
+<script src="comun.js"></script>
+<script>
+document.getElementById('marca').innerHTML = LOGO;
+document.getElementById('bsalir').insertAdjacentHTML('afterbegin', icono('salir'));
+document.getElementById('agregar').innerHTML = icono('mas') + 'Agregar otro cliente';
+document.getElementById('sel-x').innerHTML = icono('x');
+document.getElementById('sel-i').outerHTML = icono('buscar');
+
+let modo = 'completo', opciones = [], clientesUsados = [], filas = [], filaActiva = null, enviando = false;
+const nuevaFila = () => ({ k: Math.random().toString(36).slice(2), nvId: null, cliente: '', unidades: '' });
+
+async function iniciar() {
+  const yo = await api('/api/yo');
+  if (yo.usuario.rol === 'admin') document.getElementById('quien').insertAdjacentHTML('afterend', '<a class="btn ghost sm" href="admin.html">Administración</a>');
+  document.getElementById('quien').textContent = `${yo.usuario.nombre} ${yo.usuario.apellido}`;
+  const hoy = new Date().toISOString();
+  document.getElementById('sub').textContent = `${fechaLarga(hoy)} · Cargalo al final del día, antes de irte.`;
+  await cargarOpciones();
+  filas = [nuevaFila()];
+  pintar(); pintarHoy();
+}
+async function cargarOpciones() {
+  const d = await api('/api/operario/opciones');
+  modo = d.modo; opciones = d.opciones; clientesUsados = d.clientesUsados;
+}
+const opcion = id => opciones.find(o => o.nvId === id);
+
+function pintar() {
+  const cont = document.getElementById('filas');
+  cont.innerHTML = filas.map((f, i) => {
+    const o = opcion(f.nvId);
+    let cli;
+    if (modo === 'basico') {
+      cli = `<label><span class="lbl">Cliente</span><input class="input cli-txt" list="dl" data-k="${f.k}" data-campo="cliente" value="${esc(f.cliente)}" placeholder="Nombre del cliente"></label>`;
+    } else {
+      cli = `<div><span class="lbl">Cliente</span><button type="button" class="elegir ${o ? 'listo' : 'vacio-c'}" data-elegir="${f.k}">
+        <span class="c">${o ? esc(o.cliente) : 'Tocá para elegir el cliente'}</span>
+        <span class="d">${o ? `Nota de venta ${o.numero} · ${fmt(o.total)} u.` : 'Solo aparecen los clientes con nota de venta'}</span></button></div>`;
+    }
+    const aviso = avisoFila(f);
+    return `<div class="fila">
+      <div class="fila-main">
+        ${cli}
+        <div><span class="lbl">Unidades envasadas</span>
+          <div class="paso">
+            <button type="button" data-paso="-10" data-k="${f.k}" aria-label="Restar 10">${icono('menos')}</button>
+            <input inputmode="numeric" pattern="[0-9]*" data-k="${f.k}" data-campo="unidades" value="${esc(f.unidades)}" placeholder="0" aria-label="Unidades">
+            <button type="button" data-paso="10" data-k="${f.k}" aria-label="Sumar 10">${icono('mas')}</button>
+          </div></div>
+        <button type="button" class="quitar" data-quitar="${f.k}" aria-label="Quitar fila" ${filas.length === 1 ? 'style="visibility:hidden"' : ''}>${icono('borrar')}</button>
+      </div>
+      ${aviso}
+    </div>`;
+  }).join('') + (modo === 'basico' ? `<datalist id="dl">${clientesUsados.map(c => `<option value="${esc(c)}">`).join('')}</datalist>` : '');
+  totales();
+}
+function avisoFila(f) {
+  if (modo !== 'completo' || !f.nvId || !(+f.unidades > 0)) return '';
+  const o = opcion(f.nvId);
+  const enEsta = filas.filter(x => x.nvId === f.nvId).reduce((a, x) => a + (+x.unidades || 0), 0);
+  const quedaria = o.envasado + enEsta;
+  if (quedaria <= o.total) return '';
+  return `<div class="aviso warn">${icono('alerta')}<span>La nota ${o.numero} es de <b>${fmt(o.total)} u.</b> y ya hay ${fmt(o.envasado)} cargadas. Con esto quedarían <b>${fmt(quedaria)}</b>. Revisá el número; si está bien, registralo igual y administración lo va a revisar.</span></div>`;
+}
+function totales() {
+  const t = filas.reduce((a, f) => a + (+f.unidades || 0), 0);
+  const n = filas.filter(f => +f.unidades > 0).length;
+  document.getElementById('total').textContent = fmt(t) + ' u.';
+  document.getElementById('totsub').textContent = n ? `${n} ${n === 1 ? 'cliente' : 'clientes'} en esta carga` : 'en esta carga';
+}
+
+document.getElementById('filas').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.elegir) abrirSelector(b.dataset.elegir);
+  if (b.dataset.quitar) { filas = filas.filter(f => f.k !== b.dataset.quitar); pintar(); }
+  if (b.dataset.paso) {
+    const f = filas.find(x => x.k === b.dataset.k);
+    f.unidades = String(Math.max(0, (+f.unidades || 0) + Number(b.dataset.paso)) || '');
+    pintar();
+  }
+});
+document.getElementById('filas').addEventListener('input', e => {
+  const el = e.target; const f = filas.find(x => x.k === el.dataset.k); if (!f) return;
+  if (el.dataset.campo === 'unidades') { el.value = el.value.replace(/\D/g, '').slice(0, 5); f.unidades = el.value; }
+  else f.cliente = el.value;
+  totales();
+});
+document.getElementById('filas').addEventListener('change', e => { if (e.target.dataset.campo === 'unidades') pintar(); });
+document.getElementById('agregar').onclick = () => {
+  filas.push(nuevaFila()); pintar();
+  if (modo === 'completo') abrirSelector(filas.at(-1).k);
+  else document.querySelector(`[data-k="${filas.at(-1).k}"][data-campo="cliente"]`)?.focus();
+};
+
+// ----- selector de cliente -----
+const dlg = document.getElementById('sel'), q = document.getElementById('q');
+function abrirSelector(k) { filaActiva = k; q.value = ''; pintarOps(); dlg.showModal(); setTimeout(() => q.focus(), 50); }
+function pintarOps() {
+  const t = q.value.trim().toLowerCase();
+  const lista = opciones.filter(o => !t || o.cliente.toLowerCase().includes(t) || String(o.numero).includes(t));
+  document.getElementById('ops').innerHTML = lista.length ? lista.map(o => `<li><button type="button" role="option" data-nv="${o.nvId}">
+    <span class="c">${esc(o.cliente)}</span>
+    <span class="d">Nota ${o.numero} · ${fmt(o.total)} u. · ${fmt(o.envasado)} ya cargadas ${o.cerrada ? '<span class="chip">Ya remitida</span>' : ''}</span>
+  </button></li>`).join('') : `<li class="vacio">${opciones.length ? 'No hay clientes con ese nombre.' : 'No hay notas de venta habilitadas. Avisale a administración.'}</li>`;
+}
+q.addEventListener('input', pintarOps);
+q.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.querySelector('#ops button')?.click(); } });
+document.getElementById('ops').addEventListener('click', e => {
+  const b = e.target.closest('button[data-nv]'); if (!b) return;
+  const f = filas.find(x => x.k === filaActiva); f.nvId = b.dataset.nv; dlg.close(); pintar();
+  const inp = document.querySelector(`[data-k="${f.k}"][data-campo="unidades"]`); inp?.focus();
+});
+document.getElementById('sel-x').onclick = () => dlg.close();
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+
+// ----- enviar -----
+document.getElementById('enviar').onclick = async () => {
+  if (enviando) return;
+  const completas = filas.filter(f => +f.unidades > 0 && (modo === 'completo' ? f.nvId : f.cliente.trim()));
+  const incompletas = filas.filter(f => (+f.unidades > 0) !== !!(modo === 'completo' ? f.nvId : f.cliente.trim()));
+  if (incompletas.length) return toast(modo === 'completo' ? 'Hay una fila sin cliente o sin unidades.' : 'Hay una fila sin cliente o sin unidades.', 'err');
+  if (!completas.length) return toast('Elegí un cliente y poné las unidades envasadas.', 'err');
+  const b = document.getElementById('enviar'); enviando = true; b.disabled = true; b.textContent = 'Registrando…';
+  try {
+    const r = await api('/api/operario/cargas', { method: 'POST', body: { filas: completas.map(f => ({ nvId: f.nvId, cliente: f.cliente, unidades: +f.unidades })) } });
+    const tot = completas.reduce((a, f) => a + +f.unidades, 0);
+    toast(`Listo, registraste ${fmt(tot)} unidades.`);
+    filas = [nuevaFila()]; await cargarOpciones(); pintar(); pintarHoy();
+  } catch (e) { toast(e.message, 'err'); await cargarOpciones(); pintar(); }
+  enviando = false; b.disabled = false; b.textContent = 'Registrar carga';
+};
+
+async function pintarHoy() {
+  const { cargas } = await api('/api/operario/hoy');
+  const el = document.getElementById('hoy');
+  if (!cargas.length) { el.innerHTML = '<div class="vacio">Todavía no registraste nada hoy.</div>'; return; }
+  const tot = cargas.reduce((a, c) => a + c.unidades, 0);
+  el.innerHTML = `<ul>${cargas.slice().reverse().map(c => `<li>
+    <span class="q">${fmt(c.unidades)}</span>
+    <span class="who"><b>${esc(c.cliente)}</b><small>${c.numero ? 'Nota ' + c.numero + ' · ' : ''}${hora(c.fecha)}</small></span>
+    <button class="btn ghost sm danger" data-borrar="${c.id}">${icono('borrar')}Borrar</button></li>`).join('')}
+    <li style="background:var(--paper)"><span class="q">${fmt(tot)}</span><span class="who"><b>Total de hoy</b></span></li></ul>`;
+}
+document.getElementById('hoy').addEventListener('click', async e => {
+  const b = e.target.closest('[data-borrar]'); if (!b) return;
+  if (!confirm('¿Borrar esta carga? Hacelo solo si te equivocaste.')) return;
+  try { await api('/api/operario/cargas/' + b.dataset.borrar, { method: 'DELETE' }); toast('Carga borrada.'); await cargarOpciones(); pintar(); pintarHoy(); }
+  catch (err) { toast(err.message, 'err'); }
+});
+iniciar();
+</script>
+</body>
+</html>

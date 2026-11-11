@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fremec · Pantalla de planta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link rel="icon" href="img/icono.png">
+<link rel="stylesheet" href="estilos.css">
+<style>
+  :root { --tv-bg: #0E0F24; --tv-panel: #1A1A2E; --tv-line: #2B2E57; --tv-ink: #F5F7FF; --tv-muted: #9EA6C9; --tv-accent: #3D7BFF; --tv-ok: #01EFFF; --tv-warn: #01EFFF; --ink: var(--tv-ink); --paper: var(--tv-bg); --sunk: #2B2E57; --line: var(--tv-line); --surface: var(--tv-panel); color-scheme: dark; }
+  html, body { height: 100%; }
+  body { background: var(--tv-bg); color: var(--tv-ink); font-size: clamp(14px, 1.15vw, 22px); overflow: hidden; }
+  ::selection { background: var(--tv-accent); color: #0E0F24; }
+  .tv { height: 100dvh; display: grid; grid-template-rows: auto auto 1fr; gap: 1.6em; padding: 1.6em 2em 2em; }
+  .cab { display: flex; align-items: center; gap: 1em; }
+  .cab .marca { font-size: 1.4em; }
+  .cab .marca small { color: var(--tv-ok) !important; background: rgb(1 239 255 / .1); font-size: .6em; }
+  .cab .marca .logo { height: 2.4em; background: #fff; padding: .35em .8em; border-radius: 12px; }
+  .cab .sp { flex: 1; }
+  .reloj { font-size: 2.2em; font-weight: 750; letter-spacing: -0.02em; font-stretch: 90%; }
+  .fecha { color: var(--tv-muted); text-align: right; line-height: 1.3; }
+  .grandes { display: grid; grid-template-columns: repeat(var(--cols, 3), 1fr); gap: 1.2em; }
+  .g { padding: 1.1em 1.4em 1.2em; border-radius: 14px; background: var(--tv-panel); border: 1px solid var(--tv-line); display: grid; gap: .2em; }
+  .g .v { font-size: 5.4em; line-height: 1; font-weight: 800; letter-spacing: -0.035em; font-stretch: 88%; }
+  .g .k { font-size: 1.15em; color: var(--tv-muted); font-weight: 550; }
+  .g.dest .v { color: var(--tv-warn); }
+  .abajo { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.2em; min-height: 0; }
+  .caja { background: var(--tv-panel); border: 1px solid var(--tv-line); border-radius: 14px; padding: 1.2em 1.4em; display: grid; grid-template-rows: auto 1fr; gap: .8em; min-height: 0; }
+  .caja h2 { font-size: 1.2em; font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 1em; }
+  .caja h2 span { color: var(--tv-muted); font-weight: 500; font-size: .85em; }
+  .pedidos { overflow: hidden; display: grid; align-content: start; }
+  .ped { display: grid; grid-template-columns: 5.2em 1fr 7.5em; gap: .25em 1em; align-items: center; padding: .55em 0; border-bottom: 1px solid var(--tv-line); }
+  .ped:last-child { border-bottom: 0; }
+  .ped .n { font-weight: 750; color: var(--tv-muted); }
+  .ped .c { font-weight: 650; font-size: 1.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ped .p { text-align: right; font-weight: 800; font-size: 1.35em; }
+  .ped .p small { display: block; font-size: .55em; color: var(--tv-muted); font-weight: 500; }
+  .ped .b { grid-column: 2; height: .5em; border-radius: 99px; background: #2B2E57; overflow: hidden; position: relative; }
+  .ped .b span { position: absolute; inset: 0 auto 0 0; background: var(--tv-accent); border-radius: 99px; transition: width .8s var(--ease); }
+  .ped .b span.over { background: #FF5A61; }
+  .ped .s { grid-column: 2; font-size: .85em; color: var(--tv-muted); }
+  .graf { display: grid; grid-template-rows: auto 1fr; gap: .6em; min-height: 0; }
+  .hoy { display: flex; align-items: baseline; gap: .5em; }
+  .hoy b { font-size: 3.2em; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--tv-ok); }
+  .hoy span { color: var(--tv-muted); }
+  #graf { min-height: 0; }
+  .barras { height: 100%; min-height: 9em; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: .7em; align-items: end; }
+  .barras .col { height: 100%; display: grid; grid-template-rows: 1fr auto; min-height: 0; }
+  .barras .zona { height: 100%; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; }
+  .barras .bar { display: block; min-height: 2px; background: #34397A; border-radius: 5px 5px 2px 2px; transition: height .8s var(--ease); position: relative; }
+  .barras .v { text-align: center; font-weight: 700; font-size: .95em; padding-bottom: .3em; white-space: nowrap; }
+  .barras .d { text-align: center; color: var(--tv-muted); padding-top: .4em; font-size: .9em; }
+  .barras .hoy .bar { background: var(--tv-ok); }
+  .barras .hoy .d { color: var(--tv-ink); font-weight: 700; }
+  .vacio-tv { color: var(--tv-muted); padding: 2em 0; text-align: center; }
+  .pie-tv { position: fixed; right: 2em; bottom: .6em; font-size: .8em; color: #6B7299; }
+  .full { position: fixed; right: 1em; top: 1em; opacity: 0; transition: opacity .3s; }
+  body:hover .full { opacity: 1; }
+  body.en-full .full { display: none; }
+  .full .btn { background: #1A1A2E; border-color: #2B2E57; color: var(--tv-ink); }
+  .full .btn:hover { background: #2B2E57; }
+  @media (max-width: 900px) { body { overflow: auto; font-size: 15px; } .tv { height: auto; } .grandes { grid-template-columns: 1fr; } .abajo { grid-template-columns: 1fr; } .g .v { font-size: 3.6em; } }
+</style>
+</head>
+<body>
+<div class="tv">
+  <header class="cab">
+    <div class="marca" id="marca"></div><span class="sp"></span>
+    <div class="fecha" id="fecha"></div>
+    <div class="reloj num" id="reloj"></div>
+  </header>
+  <section class="grandes" id="grandes"></section>
+  <section class="abajo">
+    <div class="caja"><h2 id="t-izq">Notas de venta pendientes</h2><div class="pedidos" id="izq"></div></div>
+    <div class="caja graf"><div class="hoy" id="hoy"></div><div id="graf"></div></div>
+  </section>
+</div>
+<div class="pie-tv" id="act"></div>
+<div class="full"><button class="btn sm" id="bfull">Pantalla completa</button></div>
+<script src="productos.js"></script>
+<script src="demo-api.js"></script>
+<script src="comun.js"></script>
+<script>
+document.getElementById('marca').innerHTML = LOGO + '<small>Envasado y despacho</small>';
+const $ = id => document.getElementById(id);
+function tic() {
+  const d = new Date();
+  $('reloj').textContent = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  const f = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+  $('fecha').textContent = f.charAt(0).toUpperCase() + f.slice(1);
+}
+tic(); setInterval(tic, 1000);
+$('bfull').onclick = () => document.documentElement.requestFullscreen?.();
+// el botón se oculta mientras la pantalla está completa (botón o F11) y vuelve al salir
+const mqFull = matchMedia('(display-mode: fullscreen)');
+function estadoFull() {
+  const full = !!document.fullscreenElement || mqFull.matches ||
+    (innerHeight >= screen.height - 1 && innerWidth >= screen.width - 1);
+  document.body.classList.toggle('en-full', full);
+}
+document.addEventListener('fullscreenchange', estadoFull);
+mqFull.addEventListener?.('change', estadoFull);
+addEventListener('resize', estadoFull);
+estadoFull();
+
+function grafico(serie) {
+  const max = Math.max(1, ...serie.map(s => s.unidades));
+  const hoy = serie.at(-1).fecha;
+  return `<div class="barras" role="img" aria-label="Unidades envasadas por día, últimos ${serie.length} días">${serie.map(s => {
+    const d = new Date(s.fecha + 'T12:00');
+    const lbl = s.fecha === hoy ? 'Hoy' : d.toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '');
+    return `<div class="col ${s.fecha === hoy ? 'hoy' : ''}"><span class="zona"><span class="v num">${s.unidades ? fmt(s.unidades) : ''}</span><span class="bar" style="height:${(s.unidades / max) * 85}%"></span></span><span class="d">${lbl}</span></div>`;
+  }).join('')}</div>`;
+}
+
+async function actualizar() {
+  try {
+    const d = await api('/api/planta');
+    const basico = d.modo === 'basico';
+    if (basico) {
+      $('grandes').style.setProperty('--cols', 2);
+      $('grandes').innerHTML = `<div class="g"><span class="v num">${fmt(d.envasadasHoy)}</span><span class="k">Unidades envasadas hoy</span></div>
+        <div class="g"><span class="v num">${fmt(d.serie.slice(-5).reduce((a, s) => a + s.unidades, 0))}</span><span class="k">Unidades envasadas en los últimos 5 días</span></div>`;
+      $('t-izq').innerHTML = 'Envasado de hoy por cliente';
+      $('izq').innerHTML = d.porCliente.length ? d.porCliente.slice(0, 9).map(c => `<div class="ped" style="grid-template-columns:1fr 7.5em"><span class="c">${esc(c.cliente)}</span><span class="p">${fmt(c.unidades)}<small>unidades</small></span></div>`).join('') : '<div class="vacio-tv">Todavía no hay cargas hoy.</div>';
+    } else {
+      $('grandes').style.setProperty('--cols', 3);
+      $('grandes').innerHTML = `
+        <div class="g"><span class="v num">${fmt(d.nvPendientes)}</span><span class="k">Notas de venta pendientes</span></div>
+        <div class="g dest"><span class="v num">${fmt(d.unidadesPendientes)}</span><span class="k">Unidades pendientes por despachar</span></div>
+        <div class="g"><span class="v num">${fmt(d.itemsPendientes)}</span><span class="k">Ítems pendientes por despachar</span></div>`;
+      $('t-izq').innerHTML = `Notas de venta pendientes <span>falta despachar</span>`;
+      const max = 3;
+      $('izq').innerHTML = d.pedidos.length ? d.pedidos.slice(0, max).map(p => {
+        const pe = Math.min(100, p.envasado / p.total * 100);
+        return `<div class="ped"><span class="n num">${p.numero}</span><span class="c">${esc(p.cliente)}</span><span class="p num">${fmt(p.pendiente)}<small>de ${fmt(p.total)} u.</small></span>
+          <span class="b"><span class="${p.envasado > p.total ? 'over' : ''}" style="width:${pe}%"></span></span>
+          <span class="s">${fmt(p.envasado)} envasadas · ${p.itemsPendientes} de ${p.items} ítems pendientes</span></div>`;
+      }).join('') + (d.pedidos.length > max ? `<div class="s" style="padding-top:.6em;color:var(--tv-muted)">y ${d.pedidos.length - max} notas más</div>` : '')
+        : '<div class="vacio-tv">No hay notas pendientes. ¡Todo despachado!</div>';
+    }
+    $('hoy').innerHTML = `<b class="num">${fmt(d.envasadasHoy)}</b><span>unidades envasadas hoy · últimos 10 días</span>`;
+    $('graf').innerHTML = grafico(d.serie);
+    $('act').textContent = 'Actualizado ' + hora(d.ahora) + ' · se actualiza solo cada 15 segundos';
+  } catch (e) { $('act').textContent = 'Sin conexión con el servidor, reintentando…'; }
+}
+actualizar(); setInterval(actualizar, 15000);
+</script>
+</body>
+</html>

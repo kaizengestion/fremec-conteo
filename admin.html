@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fremec · Administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link rel="icon" href="img/icono.png">
+<link rel="stylesheet" href="estilos.css">
+<style>
+  main { width: min(1240px, 100%); margin: 0 auto; padding: 24px 20px 64px; display: grid; gap: 22px; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .tabs button { background: none; border: 0; padding: 12px 14px; font-weight: 650; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+  .tabs button:hover { color: var(--ink); }
+  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .badge { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: var(--danger); color: #fff; font-size: .78rem; display: inline-grid; place-items: center; }
+  .badge.n { background: var(--sunk); color: var(--ink-2); }
+  section.vista { display: grid; gap: 28px; }
+  .bloque { display: grid; gap: 12px; }
+  .bloque > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .bloque > header h2 { flex: none; }
+  .bloque > header p { color: var(--muted); font-size: .92rem; flex: 1; min-width: 220px; }
+  .presea { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 14px 16px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+  .presea .estado { display: flex; gap: 10px; align-items: center; flex: 1; min-width: 260px; }
+  .presea .punto { width: 10px; height: 10px; border-radius: 50%; background: #2f9e62; box-shadow: 0 0 0 4px var(--ok-soft); flex: none; }
+  .presea small { color: var(--muted); display: block; }
+  .aprobar { display: grid; gap: 10px; }
+  .ap { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+  .ap .t { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .ap .t b { font-size: 1.05rem; }
+  .ap ul { margin: 8px 0 0; padding: 0; list-style: none; font-size: .9rem; color: var(--ink-2); display: grid; gap: 2px; }
+  .ap .acc { display: flex; gap: 8px; }
+  .prod small { display: block; color: var(--muted); font-size: .82rem; }
+  .celda-barra { display: grid; gap: 6px; min-width: 150px; }
+  .celda-barra .l { display: flex; justify-content: space-between; font-size: .85rem; }
+  .acc-t { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+  .nv-n { font-weight: 750; }
+  tr.det td { background: var(--paper); padding-top: 4px; }
+  .items { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .items td { padding: 6px 8px; border-bottom: 1px dashed var(--line); }
+  .filtros { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+  .filtros .input { min-height: 40px; width: auto; }
+  .resumen { display: flex; gap: 12px; flex-wrap: wrap; }
+  .resumen .r { padding: 10px 14px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); min-width: 150px; }
+  .resumen .r b { display: block; font-size: 1.3rem; }
+  .resumen .r span { font-size: .85rem; color: var(--muted); }
+  .alerta { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--line); align-items: start; }
+  .alerta:last-child { border-bottom: 0; }
+  .alerta .ic { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; background: var(--danger-soft); color: var(--danger); }
+  .alerta.res .ic { background: var(--sunk); color: var(--muted); }
+  .alerta small { color: var(--muted); }
+  .form-op { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: end; padding: 16px; }
+  .ajustes { display: grid; gap: 18px; padding: 20px; max-width: 760px; }
+  .opc { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); cursor: pointer; }
+  .opc:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .opc input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); }
+  .opc small { color: var(--muted); display: block; margin-top: 2px; }
+  .rem-l { display: grid; grid-template-columns: 1fr 90px; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .rem-l .input { min-height: 40px; text-align: right; }
+  .dlg-in { padding: 20px; display: grid; gap: 14px; }
+  .dlg-in .acc { display: flex; justify-content: flex-end; gap: 8px; }
+  @media (max-width: 700px) { .ap { grid-template-columns: 1fr; } .alerta { grid-template-columns: auto 1fr; } .alerta .btn { grid-column: 2; justify-self: start; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="marca" id="marca"></div><span class="prueba">Prueba</span><span class="sp"></span>
+  <a class="btn ghost sm" href="planta.html" target="_blank" id="lplanta">Pantalla de planta</a>
+  <a class="btn ghost sm" href="operario.html" id="lop">Vista operario</a>
+  <button class="btn ghost sm" onclick="salir()" id="bsalir">Salir</button>
+</div>
+<main>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-t="nvs" aria-selected="true">Notas de venta <span class="badge n" id="b-ap" hidden></span></button>
+    <button role="tab" data-t="cargas">Cargas de operarios</button>
+    <button role="tab" data-t="alertas">Alertas <span class="badge" id="b-al" hidden></span></button>
+    <button role="tab" data-t="operarios">Operarios</button>
+    <button role="tab" data-t="ajustes">Ajustes</button>
+  </nav>
+
+  <section class="vista" id="v-nvs"></section>
+  <section class="vista" id="v-cargas" hidden>
+    <div class="bloque">
+      <header><h2>Cargas de operarios</h2><p>Lo que registró cada operario al final del día.</p></header>
+      <div class="filtros">
+        <label class="f">Desde<input class="input" type="date" id="desde"></label>
+        <label class="f">Hasta<input class="input" type="date" id="hasta"></label>
+        <button class="btn sm" data-rango="hoy">Hoy</button>
+        <button class="btn sm" data-rango="7">Últimos 7 días</button>
+        <button class="btn sm" data-rango="30">Últimos 30 días</button>
+        <span style="flex:1"></span>
+        <a class="btn sm" id="csv">Descargar Excel (CSV)</a>
+      </div>
+      <div class="resumen" id="res-op"></div>
+      <div class="panel scroll-x" id="t-cargas"></div>
+    </div>
+  </section>
+  <section class="vista" id="v-alertas" hidden></section>
+  <section class="vista" id="v-operarios" hidden></section>
+  <section class="vista" id="v-ajustes" hidden></section>
+</main>
+
+<dialog id="dlg-rem" aria-labelledby="rem-t"><form class="dlg-in" id="f-rem" method="dialog">
+  <h2 id="rem-t">Remitir</h2>
+  <p class="muted" style="font-size:.92rem">Simula el remito que hacés en Presea. Lo que no remitas queda pendiente y la nota sigue abierta.</p>
+  <div id="rem-items"></div>
+  <div class="acc"><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" id="rem-ok">Registrar remito</button></div>
+</form></dialog>
+
+<script src="productos.js"></script>
+<script src="demo-api.js"></script>
+<script src="comun.js"></script>
+<script>
+document.getElementById('marca').innerHTML = LOGO + '<small>Administración</small>';
+document.getElementById('lplanta').insertAdjacentHTML('afterbegin', icono('tv'));
+document.getElementById('bsalir').insertAdjacentHTML('afterbegin', icono('salir'));
+document.getElementById('csv').insertAdjacentHTML('afterbegin', icono('bajar'));
+
+let E = null, abiertos = new Set();
+const $ = id => document.getElementById(id);
+
+async function refrescar() {
+  E = await api('/api/admin/estado');
+  const pend = E.nvs.filter(n => n.estado === 'pendiente').length;
+  const al = E.alertas.filter(a => !a.resuelta).length;
+  $('b-ap').hidden = !pend; $('b-ap').textContent = pend;
+  $('b-al').hidden = !al; $('b-al').textContent = al;
+  pintarNVs(); pintarAlertas(); pintarOperarios(); pintarAjustes();
+}
+
+// ---------- pestañas ----------
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-t]'); if (!b) return;
+  document.querySelectorAll('#tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  document.querySelectorAll('section.vista').forEach(s => s.hidden = s.id !== 'v-' + b.dataset.t);
+  if (b.dataset.t === 'cargas') cargarCargas();
+  history.replaceState(null, '', '#' + b.dataset.t);
+});
+
+// ---------- notas de venta ----------
+function pintarNVs() {
+  const v = $('v-nvs');
+  if (E.config.modo === 'basico') {
+    v.innerHTML = `<div class="aviso info">${icono('alerta')}<span>Estás en <b>versión básica</b>: los operarios escriben el cliente a mano y no hay conexión con Presea. Las notas de venta se usan solo en la versión completa (cambialo en Ajustes).</span></div>`;
+    return;
+  }
+  const pend = E.nvs.filter(n => n.estado === 'pendiente');
+  const prod = E.nvs.filter(n => n.estado === 'aprobada');
+  const cerr = E.nvs.filter(n => n.estado === 'cerrada' && n.visibleHasta && new Date(n.visibleHasta) > new Date());
+  v.innerHTML = `
+  <div class="presea">
+    <div class="estado"><span class="punto"></span><div><b>Conexión con Presea (simulada)</b><small>En la versión real, cada nota de venta que cargás en Presea aparece acá sola. Para probar, generá una:</small></div></div>
+    <button class="btn" data-sim="0">${icono('nube')}Simular nota de venta nueva</button>
+    <button class="btn" data-sim="1">Simular nota para etiquetas</button>
+  </div>
+
+  <div class="bloque">
+    <header><h2>Para aprobar</h2><p>${E.config.aprobacionObligatoria ? 'Los operarios no ven estas notas hasta que las apruebes. Descartá las que sean pruebas o para imprimir etiquetas.' : 'La aprobación está desactivada: las notas nuevas pasan directo a producción.'}</p></header>
+    ${pend.length ? `<div class="aprobar">${pend.map(n => `<div class="ap">
+      <div><div class="t"><b>Nota ${n.numero}</b><span>${esc(n.cliente)}</span><span class="chip ${n.origen.includes('etiquetas') ? 'warn' : ''}">${esc(n.origen)}</span><span class="muted" style="font-size:.88rem">${hace(n.fecha)}</span></div>
+        <ul>${n.items.map(i => `<li>${fmt(i.cantidad)} × ${esc(producto(i.producto).desc)} <span class="muted">· ${esc(producto(i.producto).marca)}</span></li>`).join('')}</ul></div>
+      <div class="acc"><button class="btn sm danger" data-desc="${n.id}">Descartar</button><button class="btn sm primary" data-apr="${n.id}">${icono('check')}Aprobar para producción</button></div>
+    </div>`).join('')}</div>` : '<div class="panel vacio">No hay notas esperando aprobación.</div>'}
+  </div>
+
+  <div class="bloque">
+    <header><h2>En producción</h2><p>Se cierran cuando las remitís (como en Presea), no por lo que carguen los operarios.</p></header>
+    <div class="panel scroll-x">${prod.length ? `<table class="tabla"><thead><tr><th>Nota</th><th>Cliente</th><th class="r">Unidades</th><th>Envasado por operarios</th><th>Remitido</th><th class="r">Pendiente</th><th></th></tr></thead><tbody>
+      ${prod.map(n => filaNV(n)).join('')}</tbody></table>` : '<div class="vacio">No hay notas en producción.</div>'}</div>
+  </div>
+
+  <div class="bloque">
+    <header><h2>Cerradas, visibles para los operarios</h2><p>Siguen apareciendo en la tablet ${E.config.diasRetencion} ${E.config.diasRetencion === 1 ? 'día' : 'días'} después de cerrarse, por si se facturó antes de envasar.</p></header>
+    <div class="panel scroll-x">${cerr.length ? `<table class="tabla"><thead><tr><th>Nota</th><th>Cliente</th><th class="r">Unidades</th><th class="r">Envasado</th><th>Cerrada</th><th>Visible hasta</th><th></th></tr></thead><tbody>
+      ${cerr.map(n => `<tr><td class="nv-n">${n.numero}</td><td>${esc(n.cliente)}</td><td class="r">${fmt(n.total)}</td><td class="r">${fmt(n.envasado)}</td><td>${hace(n.cerradaEn)}</td><td>${fecha(n.visibleHasta)} ${hora(n.visibleHasta)}</td>
+      <td><div class="acc-t"><button class="btn sm" data-quitar="${n.id}">Quitar de la tablet</button></div></td></tr>`).join('')}</tbody></table>` : '<div class="vacio">No hay notas cerradas recientes.</div>'}</div>
+  </div>`;
+}
+function filaNV(n) {
+  const pe = Math.min(100, n.envasado / n.total * 100), pr = n.remitido / n.total * 100;
+  const over = n.envasado > n.total;
+  return `<tr>
+    <td class="nv-n">${n.numero}<br><button class="btn ghost sm" style="padding:0 4px;min-height:24px" data-ver="${n.id}">${abiertos.has(n.id) ? 'Ocultar' : 'Ver'} ítems</button></td>
+    <td>${esc(n.cliente)}<br><span class="muted" style="font-size:.85rem">${n.items.length} ítems · ${n.itemsPendientes} pendientes</span></td>
+    <td class="r">${fmt(n.total)}</td>
+    <td><div class="celda-barra"><div class="l"><span>${fmt(n.envasado)} u.</span>${over ? `<span class="chip danger">${icono('alerta')}Supera la nota</span>` : `<span class="muted">${Math.round(pe)}%</span>`}</div><div class="barra ${over ? 'over' : ''}"><span style="width:${pe}%"></span></div></div></td>
+    <td><div class="celda-barra"><div class="l"><span>${fmt(n.remitido)} u.</span><span class="muted">${Math.round(pr)}%</span></div><div class="barra"><span class="rem" style="width:${pr}%"></span></div></div></td>
+    <td class="r"><b>${fmt(n.pendiente)}</b></td>
+    <td><div class="acc-t"><button class="btn sm primary" data-rem="${n.id}">${icono('camion')}Remitir</button><button class="btn sm" data-cerrar="${n.id}">Cerrar</button></div></td>
+  </tr>${abiertos.has(n.id) ? `<tr class="det"><td></td><td colspan="6"><table class="items">${n.items.map(i => `<tr><td class="prod">${esc(producto(i.producto).desc)}<small>${esc(producto(i.producto).marca)}</small></td><td class="r">${fmt(i.cantidad)} u.</td><td class="r muted">remitido ${fmt(i.remitido)}</td></tr>`).join('')}</table></td></tr>` : ''}`;
+}
+$('v-nvs').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const d = b.dataset;
+  try {
+    if (d.sim !== undefined) { const r = await api('/api/admin/presea/simular', { method: 'POST', body: { prueba: d.sim === '1' } }); toast(`Llegó la nota ${r.nv.numero} de ${r.nv.cliente}.`); }
+    else if (d.apr) { await api(`/api/admin/nv/${d.apr}/aprobar`, { method: 'POST' }); toast('Nota aprobada: ya la ven los operarios.'); }
+    else if (d.desc) { await api(`/api/admin/nv/${d.desc}/descartar`, { method: 'POST' }); toast('Nota descartada.'); }
+    else if (d.cerrar) { if (!confirm('¿Cerrar la nota sin remitir lo pendiente? Va a seguir visible en la tablet los días configurados.')) return; await api(`/api/admin/nv/${d.cerrar}/cerrar`, { method: 'POST' }); toast('Nota cerrada.'); }
+    else if (d.quitar) { await api(`/api/admin/nv/${d.quitar}/quitar`, { method: 'POST' }); toast('Ya no aparece en la tablet.'); }
+    else if (d.ver) { abiertos.has(d.ver) ? abiertos.delete(d.ver) : abiertos.add(d.ver); return pintarNVs(); }
+    else if (d.rem) return abrirRemito(d.rem);
+    else return;
+    await refrescar();
+  } catch (err) { toast(err.message, 'err'); }
+});
+
+// remito
+let remNV = null;
+function abrirRemito(id) {
+  remNV = E.nvs.find(n => n.id === id);
+  $('rem-t').textContent = `Remitir nota ${remNV.numero} · ${remNV.cliente}`;
+  $('rem-items').innerHTML = remNV.items.map((i, k) => {
+    const p = i.cantidad - i.remitido;
+    return `<div class="rem-l"><div class="prod">${esc(producto(i.producto).desc)}<small>${esc(producto(i.producto).marca)} · pendiente ${fmt(p)} de ${fmt(i.cantidad)}</small></div>
+      <input class="input" inputmode="numeric" data-i="${k}" value="${p}" ${p ? '' : 'disabled'} aria-label="Cantidad a remitir"></div>`;
+  }).join('');
+  $('dlg-rem').showModal();
+}
+$('f-rem').addEventListener('submit', async e => {
+  if (e.submitter?.value === 'cancel') return;
+  e.preventDefault();
+  const items = [...$('rem-items').querySelectorAll('input:not([disabled])')].map(x => ({ indice: +x.dataset.i, cantidad: +x.value || 0 }));
+  try {
+    const r = await api(`/api/admin/nv/${remNV.id}/remitir`, { method: 'POST', body: { items } });
+    $('dlg-rem').close();
+    toast(r.nv.estado === 'cerrada' ? `Remito ${r.remito}: la nota quedó completa y cerrada.` : `Remito ${r.remito}: quedan ${fmt(r.nv.pendiente)} u. pendientes.`);
+    await refrescar();
+  } catch (err) { toast(err.message, 'err'); }
+});
+
+// ---------- cargas ----------
+const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+$('desde').value = $('hasta').value = iso(new Date());
+document.querySelectorAll('[data-rango]').forEach(b => b.onclick = () => {
+  const r = b.dataset.rango; $('hasta').value = iso(new Date());
+  $('desde').value = r === 'hoy' ? iso(new Date()) : iso(new Date(Date.now() - (+r - 1) * 864e5)); cargarCargas();
+});
+$('desde').onchange = $('hasta').onchange = cargarCargas;
+async function cargarCargas() {
+  const qs = `desde=${$('desde').value}&hasta=${$('hasta').value}`;
+  $('csv').href = window.DEMO ? demoCsvUrl(qs) : 'api/admin/cargas?formato=csv&' + qs; if (window.DEMO) $('csv').download = 'cargas.csv';
+  const { cargas } = await api('/api/admin/cargas?' + qs);
+  const porOp = {};
+  cargas.forEach(c => porOp[c.operario] = (porOp[c.operario] || 0) + c.unidades);
+  const tot = cargas.reduce((a, c) => a + c.unidades, 0);
+  $('res-op').innerHTML = `<div class="r"><b>${fmt(tot)}</b><span>unidades en total</span></div>` +
+    Object.entries(porOp).sort((a, b) => b[1] - a[1]).map(([n, u]) => `<div class="r"><b>${fmt(u)}</b><span>${esc(n)}</span></div>`).join('');
+  $('t-cargas').innerHTML = cargas.length ? `<table class="tabla"><thead><tr><th>Fecha</th><th>Operario</th><th>Cliente</th><th>Nota</th><th class="r">Unidades</th><th></th></tr></thead><tbody>
+    ${cargas.map(c => `<tr><td>${fecha(c.fecha)} ${hora(c.fecha)}</td><td>${esc(c.operario)}</td><td>${esc(c.cliente)}</td><td>${c.numero || '<span class="muted">—</span>'}</td><td class="r"><b>${fmt(c.unidades)}</b></td>
+    <td><div class="acc-t"><button class="btn ghost sm danger" data-bc="${c.id}">Borrar</button></div></td></tr>`).join('')}</tbody></table>` : '<div class="vacio">No hay cargas en esas fechas.</div>';
+}
+$('t-cargas').addEventListener('click', async e => {
+  const b = e.target.closest('[data-bc]'); if (!b) return;
+  if (!confirm('¿Borrar esta carga del operario?')) return;
+  try { await api('/api/operario/cargas/' + b.dataset.bc, { method: 'DELETE' }); toast('Carga borrada.'); cargarCargas(); refrescar(); } catch (err) { toast(err.message, 'err'); }
+});
+
+// ---------- alertas ----------
+function pintarAlertas() {
+  const v = $('v-alertas');
+  const abiertas = E.alertas.filter(a => !a.resuelta), viejas = E.alertas.filter(a => a.resuelta).slice(0, 15);
+  const fila = a => `<div class="alerta ${a.resuelta ? 'res' : ''}"><span class="ic">${icono('alerta')}</span>
+    <div><b>${esc(a.mensaje)}</b><br><small>${hace(a.fecha)} · cargaron: ${esc((a.operarios || []).join(', '))}${a.nota ? ' · ' + esc(a.nota) : ''}</small></div>
+    ${a.resuelta ? '' : `<button class="btn sm" data-res="${a.id}">${icono('check')}Marcar revisada</button>`}</div>`;
+  v.innerHTML = `<div class="bloque"><header><h2>Alertas</h2><p>Aparecen cuando lo que cargan los operarios para una nota supera las unidades de esa nota.</p></header>
+    <div class="panel">${abiertas.length ? abiertas.map(fila).join('') : '<div class="vacio">No hay alertas pendientes.</div>'}</div></div>
+    ${viejas.length ? `<div class="bloque"><header><h2>Revisadas</h2></header><div class="panel">${viejas.map(fila).join('')}</div></div>` : ''}`;
+}
+$('v-alertas').addEventListener('click', async e => {
+  const b = e.target.closest('[data-res]'); if (!b) return;
+  try { await api(`/api/admin/alertas/${b.dataset.res}/resolver`, { method: 'POST' }); refrescar(); } catch (err) { toast(err.message, 'err'); }
+});
+
+// ---------- operarios ----------
+function pintarOperarios() {
+  $('v-operarios').innerHTML = `<div class="bloque"><header><h2>Usuarios</h2><p>Cada operario entra con su usuario y clave desde la tablet.</p></header>
+    <div class="panel scroll-x"><table class="tabla"><thead><tr><th>Nombre</th><th>Usuario</th><th>Sector</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>
+    ${E.operarios.map(u => `<tr><td><b>${esc(u.nombre)} ${esc(u.apellido)}</b></td><td>${esc(u.usuario)}</td><td>${esc(u.sector) || '<span class="muted">—</span>'}</td><td>${u.rol === 'admin' ? 'Administración' : 'Operario'}</td>
+      <td>${u.activo ? '<span class="chip ok">Activo</span>' : '<span class="chip">Desactivado</span>'}</td>
+      <td><div class="acc-t"><button class="btn ghost sm" data-clave="${u.id}">Cambiar clave</button><button class="btn ghost sm" data-act="${u.id}" data-v="${u.activo ? 0 : 1}">${u.activo ? 'Desactivar' : 'Activar'}</button></div></td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="bloque"><header><h2>Agregar operario</h2></header>
+    <form class="panel form-op" id="f-op" novalidate>
+      <label class="f">Nombre<input class="input" name="nombre" required></label>
+      <label class="f">Apellido<input class="input" name="apellido"></label>
+      <label class="f">Usuario<input class="input" name="usuario" autocapitalize="none" required></label>
+      <label class="f">Clave<input class="input" name="clave" required></label>
+      <label class="f">Sector (opcional)<input class="input" name="sector"></label>
+      <button class="btn primary">${icono('mas')}Agregar</button>
+    </form></div>`;
+  $('f-op').onsubmit = async e => {
+    e.preventDefault();
+    try { await api('/api/admin/operarios', { method: 'POST', body: Object.fromEntries(new FormData(e.target)) }); toast('Operario agregado.'); refrescar(); }
+    catch (err) { toast(err.message, 'err'); }
+  };
+}
+$('v-operarios').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  try {
+    if (b.dataset.act) { await api('/api/admin/operarios/' + b.dataset.act, { method: 'PUT', body: { activo: b.dataset.v === '1' } }); }
+    else if (b.dataset.clave) { const c = prompt('Nueva clave:'); if (!c) return; await api('/api/admin/operarios/' + b.dataset.clave, { method: 'PUT', body: { clave: c } }); toast('Clave cambiada.'); }
+    else return;
+    refrescar();
+  } catch (err) { toast(err.message, 'err'); }
+});
+
+// ---------- ajustes ----------
+function pintarAjustes() {
+  const c = E.config;
+  $('v-ajustes').innerHTML = `<div class="bloque"><header><h2>Ajustes</h2><p>Para mostrarle a Fremec las dos versiones que se van a presupuestar.</p></header>
+  <form class="panel ajustes" id="f-aj">
+    <div style="display:grid;gap:10px"><b>Versión</b>
+      <label class="opc"><input type="radio" name="modo" value="completo" ${c.modo === 'completo' ? 'checked' : ''}><span><b>Completa, conectada con Presea</b><small>Los operarios eligen el cliente de las notas de venta. Hay alertas, aprobación, remitos y tablero de pendientes.</small></span></label>
+      <label class="opc"><input type="radio" name="modo" value="basico" ${c.modo === 'basico' ? 'checked' : ''}><span><b>Básica</b><small>Los operarios escriben el cliente y la cantidad. Solo tabla y gráfico de unidades envasadas, sin Presea.</small></span></label>
+    </div>
+    <label class="opc"><input type="checkbox" name="aprobacionObligatoria" ${c.aprobacionObligatoria ? 'checked' : ''}><span><b>Aprobar las notas antes de que las vean los operarios</b><small>Sirve para que no aparezcan las notas de prueba o de etiquetas.</small></span></label>
+    <label class="f" style="max-width:340px">Días que una nota cerrada sigue visible en la tablet<input class="input" type="number" min="0" max="30" name="diasRetencion" value="${c.diasRetencion}"></label>
+    <div><button class="btn primary">Guardar ajustes</button></div>
+  </form></div>
+  <div class="bloque"><header><h2>Datos de prueba</h2><p>Vuelve todo al estado inicial (notas, cargas, usuarios). Vas a tener que volver a entrar.</p></header>
+    <div><button class="btn danger" id="reset">Reiniciar datos de prueba</button></div></div>`;
+  $('f-aj').onsubmit = async e => {
+    e.preventDefault(); const f = e.target;
+    try { await api('/api/admin/config', { method: 'PUT', body: { modo: f.modo.value, aprobacionObligatoria: f.aprobacionObligatoria.checked, diasRetencion: f.diasRetencion.value } }); toast('Ajustes guardados.'); refrescar(); }
+    catch (err) { toast(err.message, 'err'); }
+  };
+  $('reset').onclick = async () => { if (!confirm('¿Reiniciar todos los datos de prueba?')) return; await api('/api/admin/reiniciar', { method: 'POST' }); location.href = './'; };
+}
+
+(async () => {
+  await refrescar();
+  const h = location.hash.slice(1); if (h) document.querySelector(`#tabs [data-t="${h}"]`)?.click();
+  setInterval(() => { if (!document.querySelector('dialog[open]') && document.activeElement?.tagName !== 'INPUT') refrescar().catch(() => {}); }, 20000);
+})();
+</script>
+</body>
+</html>
