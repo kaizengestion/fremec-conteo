@@ -126,18 +126,17 @@ async function actualizar() {
       $('t-izq').innerHTML = 'Envasado de hoy por cliente';
       $('izq').innerHTML = d.porCliente.length ? d.porCliente.slice(0, 9).map(c => `<div class="ped" style="grid-template-columns:1fr 7.5em"><span class="c">${esc(c.cliente)}</span><span class="p">${fmt(c.unidades)}<small>unidades</small></span></div>`).join('') : '<div class="vacio-tv">Todavía no hay cargas hoy.</div>';
     } else {
-      $('grandes').style.setProperty('--cols', 3);
+      $('grandes').style.setProperty('--cols', 2);
       $('grandes').innerHTML = `
         <div class="g"><span class="v num">${fmt(d.nvPendientes)}</span><span class="k">Notas de venta pendientes</span></div>
-        <div class="g dest"><span class="v num">${fmt(d.unidadesPendientes)}</span><span class="k">Unidades pendientes por despachar</span></div>
-        <div class="g"><span class="v num">${fmt(d.itemsPendientes)}</span><span class="k">Ítems pendientes por despachar</span></div>`;
+        <div class="g dest"><span class="v num">${fmt(d.unidadesPendientes)}</span><span class="k">Unidades pendientes por despachar</span></div>`;
       $('t-izq').innerHTML = `Notas de venta pendientes <span>falta despachar</span>`;
       const max = 3;
       $('izq').innerHTML = d.pedidos.length ? d.pedidos.slice(0, max).map(p => {
         const pe = Math.min(100, p.envasado / p.total * 100);
         return `<div class="ped"><span class="n num">${p.numero}</span><span class="c">${esc(p.cliente)}</span><span class="p num">${fmt(p.pendiente)}<small>de ${fmt(p.total)} u.</small></span>
           <span class="b"><span class="${p.envasado > p.total ? 'over' : ''}" style="width:${pe}%"></span></span>
-          <span class="s">${fmt(p.envasado)} envasadas · ${p.itemsPendientes} de ${p.items} ítems pendientes</span></div>`;
+          <span class="s">${fmt(p.envasado)} envasadas</span></div>`;
       }).join('') + (d.pedidos.length > max ? `<div class="s" style="padding-top:.6em;color:var(--tv-muted)">y ${d.pedidos.length - max} notas más</div>` : '')
         : '<div class="vacio-tv">No hay notas pendientes. ¡Todo despachado!</div>';
     }

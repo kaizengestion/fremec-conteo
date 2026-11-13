@@ -159,7 +159,7 @@ function pintarNVs() {
     <header><h2>Para aprobar</h2><p>${E.config.aprobacionObligatoria ? 'Los operarios no ven estas notas hasta que las apruebes. Descartá las que sean pruebas o para imprimir etiquetas.' : 'La aprobación está desactivada: las notas nuevas pasan directo a producción.'}</p></header>
     ${pend.length ? `<div class="aprobar">${pend.map(n => `<div class="ap">
       <div><div class="t"><b>Nota ${n.numero}</b><span>${esc(n.cliente)}</span><span class="chip ${n.origen.includes('etiquetas') ? 'warn' : ''}">${esc(n.origen)}</span><span class="muted" style="font-size:.88rem">${hace(n.fecha)}</span></div>
-        <ul>${n.items.map(i => `<li>${fmt(i.cantidad)} × ${esc(producto(i.producto).desc)} <span class="muted">· ${esc(producto(i.producto).marca)}</span></li>`).join('')}</ul></div>
+        <p class="muted" style="margin:6px 0 0">${fmt(n.total)} ${n.total === 1 ? 'unidad' : 'unidades'}</p></div>
       <div class="acc"><button class="btn sm danger" data-desc="${n.id}">Descartar</button><button class="btn sm primary" data-apr="${n.id}">${icono('check')}Aprobar para producción</button></div>
     </div>`).join('')}</div>` : '<div class="panel vacio">No hay notas esperando aprobación.</div>'}
   </div>
@@ -210,17 +210,20 @@ let remNV = null;
 function abrirRemito(id) {
   remNV = E.nvs.find(n => n.id === id);
   $('rem-t').textContent = `Remitir nota ${remNV.numero} · ${remNV.cliente}`;
-  $('rem-items').innerHTML = remNV.items.map((i, k) => {
-    const p = i.cantidad - i.remitido;
-    return `<div class="rem-l"><div class="prod">${esc(producto(i.producto).desc)}<small>${esc(producto(i.producto).marca)} · pendiente ${fmt(p)} de ${fmt(i.cantidad)}</small></div>
-      <input class="input" inputmode="numeric" data-i="${k}" value="${p}" ${p ? '' : 'disabled'} aria-label="Cantidad a remitir"></div>`;
-  }).join('');
+  const p = remNV.pendiente;
+  $('rem-items').innerHTML = `<div class="rem-l"><div class="prod">Unidades a remitir<small>pendiente ${fmt(p)} de ${fmt(remNV.total)}</small></div>
+      <input class="input" id="rem-cant" inputmode="numeric" value="${p}" aria-label="Unidades a remitir"></div>`;
   $('dlg-rem').showModal();
 }
 $('f-rem').addEventListener('submit', async e => {
   if (e.submitter?.value === 'cancel') return;
   e.preventDefault();
-  const items = [...$('rem-items').querySelectorAll('input:not([disabled])')].map(x => ({ indice: +x.dataset.i, cantidad: +x.value || 0 }));
+  let resto = Math.floor(+$('rem-cant').value || 0);
+  if (resto <= 0) return toast('Poné cuántas unidades remitís.', 'err');
+  if (resto > remNV.pendiente) return toast(`No podés remitir más de lo pendiente (${fmt(remNV.pendiente)} u.).`, 'err');
+  // La API sigue recibiendo líneas: el total se reparte en orden sobre lo pendiente.
+  const items = [];
+  remNV.items.forEach((i, k) => { const c = Math.min(resto, i.cantidad - i.remitido); if (c > 0) { items.push({ indice: k, cantidad: c }); resto -= c; } });
   try {
     const r = await api(`/api/admin/nv/${remNV.id}/remitir`, { method: 'POST', body: { items } });
     $('dlg-rem').close();
