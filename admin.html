@@ -181,14 +181,14 @@ function filaNV(n) {
   const pe = Math.min(100, n.envasado / n.total * 100), pr = n.remitido / n.total * 100;
   const over = n.envasado > n.total;
   return `<tr>
-    <td class="nv-n">${n.numero}<br><button class="btn ghost sm" style="padding:0 4px;min-height:24px" data-ver="${n.id}">${abiertos.has(n.id) ? 'Ocultar' : 'Ver'} ítems</button></td>
-    <td>${esc(n.cliente)}<br><span class="muted" style="font-size:.85rem">${n.items.length} ítems · ${n.itemsPendientes} pendientes</span></td>
+    <td class="nv-n">${n.numero}</td>
+    <td>${esc(n.cliente)}</td>
     <td class="r">${fmt(n.total)}</td>
     <td><div class="celda-barra"><div class="l"><span>${fmt(n.envasado)} u.</span>${over ? `<span class="chip danger">${icono('alerta')}Supera la nota</span>` : `<span class="muted">${Math.round(pe)}%</span>`}</div><div class="barra ${over ? 'over' : ''}"><span style="width:${pe}%"></span></div></div></td>
     <td><div class="celda-barra"><div class="l"><span>${fmt(n.remitido)} u.</span><span class="muted">${Math.round(pr)}%</span></div><div class="barra"><span class="rem" style="width:${pr}%"></span></div></div></td>
     <td class="r"><b>${fmt(n.pendiente)}</b></td>
     <td><div class="acc-t"><button class="btn sm primary" data-rem="${n.id}">${icono('camion')}Remitir</button><button class="btn sm" data-cerrar="${n.id}">Cerrar</button></div></td>
-  </tr>${abiertos.has(n.id) ? `<tr class="det"><td></td><td colspan="6"><table class="items">${n.items.map(i => `<tr><td class="prod">${esc(producto(i.producto).desc)}<small>${esc(producto(i.producto).marca)}</small></td><td class="r">${fmt(i.cantidad)} u.</td><td class="r muted">remitido ${fmt(i.remitido)}</td></tr>`).join('')}</table></td></tr>` : ''}`;
+  </tr>`;
 }
 $('v-nvs').addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -199,7 +199,6 @@ $('v-nvs').addEventListener('click', async e => {
     else if (d.desc) { await api(`/api/admin/nv/${d.desc}/descartar`, { method: 'POST' }); toast('Nota descartada.'); }
     else if (d.cerrar) { if (!confirm('¿Cerrar la nota sin remitir lo pendiente? Va a seguir visible en la tablet los días configurados.')) return; await api(`/api/admin/nv/${d.cerrar}/cerrar`, { method: 'POST' }); toast('Nota cerrada.'); }
     else if (d.quitar) { await api(`/api/admin/nv/${d.quitar}/quitar`, { method: 'POST' }); toast('Ya no aparece en la tablet.'); }
-    else if (d.ver) { abiertos.has(d.ver) ? abiertos.delete(d.ver) : abiertos.add(d.ver); return pintarNVs(); }
     else if (d.rem) return abrirRemito(d.rem);
     else return;
     await refrescar();
